@@ -8,14 +8,15 @@ client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-	console.log(`added ./commands/${file}`)
+	console.log(`./commands/${file}`)
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.data.name, command);
 }
 
-client.once('ready', () => {
-	console.log('Ready!');
+client.on('ready', () => {
+	console.log(`Logged in as ${client.user.tag}!`);
 });
+
 
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
