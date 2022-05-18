@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
+const { msgInteraction, timeCounter, randomRoom } = require('./helper');
 
 const client = new Client({
 	intents: [
@@ -42,5 +43,21 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
+
+client.on('messageDelete', (message) => {
+	msgInteraction(message)
+})
+client.on('messageUpdate', (message) => {
+	msgInteraction(message)
+})
+
+
+client.on("voiceStateUpdate", (oldMember, newMember) => {
+	timeCounter(oldMember, newMember)
+
+	personlRoom(oldMember, newMember)
+
+	randomRoom(oldMember, newMember)
+})
 
 client.login(token);
