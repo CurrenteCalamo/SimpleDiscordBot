@@ -1,16 +1,15 @@
+const { MessageEmbed } = require('discord.js');
 let db = require('quick.db')
 const { rooms } = require('./config.json');
 
 function msgInteraction(message) {
-	let files = []
-	for (let val of message.attachments) files.push(val[1].proxyURL)
-	const Embed = new MessageEmbed()
+
+	return new MessageEmbed()
 		.setColor('#ffffff')
 		.addField('Отправитель', message.member.toString())
 		.addField('Канал', message.channel.toString(), true)
 		.addField('Содержание', message.content ? message.content : 'null', true)
 		.setTimestamp()
-	client.channels.cache.get("974257431897051146").send({ files: files, embeds: [Embed] })
 }
 
 function timeCounter(oM, nM) {
@@ -57,4 +56,113 @@ function personlRoom(oM, nM) {
 	}
 }
 
-module.exports = { msgInteraction, timeCounter, randomRoom, personlRoom }
+function privateRoom(oM, nM) {
+
+	if (nM.channel != null && nM.channel.name.startsWith('└private')) {
+		nM.guild.channels.create(nM.member.user.username, {
+			type: "GUILD_VOICE", parent: '972490997969862777',
+			permissionOverwrites: [{
+				id: nM.guild.id,
+				deny: ['ADMINISTRATOR'],
+				allow: ['CONNECT', 'SPEAK']
+			}]
+
+		}).then(cloneChannel => nM.setChannel(cloneChannel))
+	}
+}
+function setUserLvl(message) {
+	let uid = message.author.id
+	let sid = message.guild.id
+	let xp = db.get(`xp_${sid}_${uid}`)
+	let lvl = db.get(`lvl_${sid}_${uid}`)
+
+	if (!xp) {
+		db.set(`xp_${sid}_${uid}`, 0)
+		xp = 0
+	}
+	if (!lvl) {
+		db.set(`lvl_${sid}_${uid}`, 1)
+		lvl = 1
+	}
+	db.add(`xp_${sid}_${uid}`, 1)
+	if (xp >= 90) {
+		db.add(`lvl_${sid}_${uid}`, 1)
+		db.set(`xp_${sid}_${uid}`, 0)
+	}
+	switch (lvl) {
+		case 1: {
+			message.member.roles.add('974343451678244904')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343451678244904>`)
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 5: {
+			message.member.roles.remove('974343451678244904')
+			message.member.roles.add('974343448930959390')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343448930959390>`)
+			message.member.send("Теперь вы можете собирать ежедневные награды.");
+
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 25: {
+			message.member.roles.remove('974343448930959390')
+			message.member.roles.add('974343445491621889')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343445491621889>`)
+			message.member.send("Теперь вы можете создавать приватные комнаты");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 50: {
+			message.member.roles.remove('974343445491621889')
+			message.member.roles.add('974343442656272494')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343442656272494>`)
+			message.member.send("Теперь вы можете делится изображениями.");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 100: {
+			message.member.roles.remove('974343442656272494')
+			message.member.roles.add('974343439284052087')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343439284052087>`)
+			message.member.send("Теперь вам начинает вести в ежедневных наградах.");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 250: {
+			message.member.roles.remove('974343439284052087')
+			message.member.roles.add('974342727514849290')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342727514849290>`)
+			message.member.send("Тепер ваша комиссия в магазине составит 0%.");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 500: {
+			message.member.roles.remove('974342727514849290')
+			message.member.roles.add('974342721630249021')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342721630249021>`)
+			message.member.send("Вам открывается доступ к закрытому каналу.");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+
+			break;
+		} case 1000: {
+			message.member.roles.remove('974342721630249021')
+			message.member.roles.add('974342141230845973')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342141230845973>`)
+			message.member.send("Вам открывается привилегии модератора.");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		} case 2500: {
+			message.member.roles.remove('974342141230845973')
+			message.member.roles.add('974340757198630952')
+			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974340757198630952>`)
+			message.member.send("Мы любим вас! Будущее сервера в ваших руках.");
+			db.add(`lvl_${sid}_${uid}`, 1)
+
+			break;
+		}
+	}
+}
+module.exports = { msgInteraction, timeCounter, randomRoom, personlRoom, privateRoom, setUserLvl }

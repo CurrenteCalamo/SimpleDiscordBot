@@ -1,13 +1,36 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('avatar')
-		.setDescription('Get the avatar URL of the selected user, or your own avatar.')
-		.addUserOption(option => option.setName('target').setDescription('The user\'s avatar to show')),
+		.setDescription('Получить аватара выбранного пользователя или свой собственный аватар.')
+		.addUserOption(option => option.setName('target').setDescription('Пользователь')),
 	async execute(interaction) {
 		const user = interaction.options.getUser('target');
-		if (user) return interaction.reply(`${user.username}'s avatar: ${user.displayAvatarURL({ dynamic: true })}`);
-		return interaction.reply(`Your avatar: ${interaction.user.displayAvatarURL({ dynamic: true })}`);
+
+
+		if (user) {
+			const embed = new MessageEmbed()
+				.setColor('#ffffff')
+				.setTitle(`Аватарка ${user.username}`)
+				.setDescription(`<@${interaction.user.id}>, ниже аватарка <@${user.id}>`)
+				.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+
+				.setImage(`${user.displayAvatarURL({ size: 2048, dynamic: true })}`)
+			return interaction.reply({
+				"embeds": [embed],
+			});
+		}
+		const embed = new MessageEmbed()
+			.setColor('#ffffff')
+			.setTitle('Аватарка')
+			.setDescription(`<@${interaction.user.id}>, ниже **Ваша** аватарка`)
+			.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+
+			.setImage(`${interaction.user.displayAvatarURL({ size: 2048, dynamic: true })}`)
+		return interaction.reply({
+			"embeds": [embed],
+		});
 	},
 };

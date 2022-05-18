@@ -1,7 +1,8 @@
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
-const { msgInteraction, timeCounter, randomRoom } = require('./helper');
+const { msgInteraction, timeCounter, randomRoom, setUserLvl, privateRoom, personlRoom } = require('./helper');
+const { GuildVerificationLevel } = require('discord-api-types/v10');
 
 const client = new Client({
 	intents: [
@@ -15,7 +16,6 @@ client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-	console.log(`./commands/${file}`)
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.data.name, command);
 }
@@ -45,19 +45,30 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('messageDelete', (message) => {
-	msgInteraction(message)
+	let files = []
+	for (let val of message.attachments) files.push(val[1].proxyURL)
+	const Embed = msgInteraction(message)
+	client.channels.cache.get("972184647201062932").send({ files: files, embeds: [Embed] })
+
 })
 client.on('messageUpdate', (message) => {
-	msgInteraction(message)
+	let files = []
+	for (let val of message.attachments) files.push(val[1].proxyURL)
+	const Embed = msgInteraction(message)
+	client.channels.cache.get("974257431897051146").send({ files: files, embeds: [Embed] })
 })
 
 
 client.on("voiceStateUpdate", (oldMember, newMember) => {
 	timeCounter(oldMember, newMember)
+	randomRoom(oldMember, newMember)
 
+	privateRoom(oldMember, newMember)
 	personlRoom(oldMember, newMember)
 
-	randomRoom(oldMember, newMember)
+})
+client.on('message', async (message) => {
+	setUserLvl(message)
 })
 
 client.login(token);
