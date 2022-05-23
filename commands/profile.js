@@ -1,6 +1,7 @@
 let db = require('quick.db')
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
+const { line } = require('../helper');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -17,38 +18,40 @@ module.exports = {
 			let sid = interaction.guild.id
 
 			let money = db.get(`money_${sid}_${uid}`)
-			let xp = db.get(`xp_${sid}_${uid}`)
+			let allTime = db.get(`voiceAllTime.${uid}`)
+
+
 			let lvl = db.get(`lvl_${sid}_${uid}`)
-			if (xp == null) {
-				db.set(`xp_${sid}_${uid}`, 0)
-				xp = 0
+			if (!allTime) {
+				db.set(`voiceAllTime.${uid}`, 0)
+				allTime = 0
+				if (!lvl) {
+					db.set(`lvl_${sid}_${uid}`, 1)
+					lvl = 1
+				}
+				if (!money) {
+					db.set(`money_${sid}_${uid}`, 0)
+					money = 0
+				}
+
+				const Embed = new MessageEmbed()
+					.setColor('#ffffff')
+					.setTitle(`Профиль — ${user.username}`)
+					.setThumbnail(`${user.displayAvatarURL()}`)
+					.addFields(
+
+						{ name: "уровень:", value: `${lvl}`, inline: true },
+						{ name: "койнов:", value: `${money}`, inline: true },
+						{ name: "онлайн:", value: line(allTime), inline: true },
+					)
+				return interaction.reply({
+					"content": null,
+					"embeds": [Embed],
+					"attachments": []
+				});
+
+
 			}
-			if (lvl == null) {
-				db.set(`lvl_${sid}_${uid}`, 1)
-				lvl = 1
-			}
-			if (money == null) {
-				db.set(`money_${sid}_${uid}`, 0)
-				money = 0
-			}
-
-			const Embed = new MessageEmbed()
-				.setColor('#ffffff')
-				.setTitle(`**Профиль — ${user.username}`)
-				.setThumbnail(`${user.displayAvatarURL()}`)
-				.addFields(
-
-					{ name: "уровень:", value: `${lvl}`, inline: true },
-					{ name: "койнов:", value: `${money}`, inline: true },
-					{ name: "был онлайн:", value: `online`, inline: true },
-				)
-			return interaction.reply({
-				"content": null,
-				"embeds": [Embed],
-				"attachments": []
-			});
-
-
 		}
 
 
@@ -56,21 +59,21 @@ module.exports = {
 		let sid = interaction.guild.id
 
 		let money = db.get(`money_${sid}_${uid}`)
-		let xp = db.get(`xp_${sid}_${uid}`)
 		let lvl = db.get(`lvl_${sid}_${uid}`)
-		if (!xp) {
-			db.set(`xp_${sid}_${uid}`, 0)
-			xp = 0
+		let allTime = db.get(`voiceAllTime.${uid}`)
+		if (!allTime) {
+			db.set(`voiceAllTime.${uid}`, 0)
+			allTime = 0
+		}
+
+		if (!money) {
+			db.set(`money_${sid}_${uid}`, 0)
+			money = 0
 		}
 		if (!lvl) {
 			db.set(`lvl_${sid}_${uid}`, 1)
 			lvl = 1
 		}
-		if (!money) {
-			db.set(`money_${sid}_${uid}`, 0)
-			money = 0
-		}
-
 
 		const Embed = new MessageEmbed()
 			.setColor('#ffffff')
@@ -80,7 +83,7 @@ module.exports = {
 
 				{ name: "уровень:", value: `${lvl}`, inline: true },
 				{ name: "койнов:", value: `${money}`, inline: true },
-				{ name: "был онлайн:", value: `online`, inline: true },
+				{ name: "онлайн:", value: line(allTime), inline: true },
 			)
 		return interaction.reply({
 			"content": null,

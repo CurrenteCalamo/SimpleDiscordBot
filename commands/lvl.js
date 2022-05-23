@@ -7,6 +7,7 @@ module.exports = {
 		.setName('lvl')
 		.setDescription('Показать мой текущий уровень'),
 	async execute(interaction) {
+
 		let uid = interaction.user.id
 		let sid = interaction.guild.id
 		let xp = db.get(`xp_${sid}_${uid}`)

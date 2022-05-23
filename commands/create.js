@@ -28,6 +28,8 @@ module.exports = {
 				name: messages,
 				color: color,
 				permissions: []
+			}).then(newRole => {
+				console.log(newRole.id)
 			})
 
 			await interaction.member.roles.add(interaction.guild.roles.cache.find(r => (r.name == messages)))

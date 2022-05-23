@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
-const { msgInteraction, timeCounter, randomRoom, setUserLvl, privateRoom, personlRoom } = require('./helper');
+const { msgInteraction, timeCounter, randomRoom, setUserLvl, privateRoom, personlRoom, lol } = require('./helper');
 const { GuildVerificationLevel } = require('discord-api-types/v10');
 
 const client = new Client({
@@ -22,6 +22,7 @@ for (const file of commandFiles) {
 
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
+	// console.log(client.guilds.cache.size)
 });
 
 client.on('guildMemberAdd', (member) => {
@@ -37,7 +38,7 @@ client.on('interactionCreate', async interaction => {
 	if (!command) return;
 
 	try {
-		await command.execute(interaction);
+		await command.execute(interaction, client);
 	} catch (error) {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -62,7 +63,6 @@ client.on('messageUpdate', (message) => {
 client.on("voiceStateUpdate", (oldMember, newMember) => {
 	timeCounter(oldMember, newMember)
 	randomRoom(oldMember, newMember)
-
 	privateRoom(oldMember, newMember)
 	personlRoom(oldMember, newMember)
 
@@ -70,5 +70,9 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 client.on('message', async (message) => {
 	setUserLvl(message)
 })
+
+
+// 
+
 
 client.login(token);
