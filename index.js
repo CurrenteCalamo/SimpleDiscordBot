@@ -1,34 +1,34 @@
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
-const { msgInteraction, timeCounter, randomRoom, setUserLvl, privateRoom, personlRoom, lol } = require('./helper');
-const { GuildVerificationLevel } = require('discord-api-types/v10');
+const { shopbutton, shoplist, getTimeStr, timeCounter, messagesManager, lvlManager, privateRoom, personlRoom, randomRoom } = require('./component');
+
 
 const client = new Client({
 	intents: [
-		Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES,
-		Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES,
+		Intents.FLAGS.GUILDS,
+		Intents.FLAGS.GUILD_VOICE_STATES,
+		Intents.FLAGS.GUILD_MEMBERS,
+		Intents.FLAGS.GUILD_MESSAGES,
 		Intents.FLAGS.GUILD_PRESENCES]
 });
 
+//	MEMBERADD
+client.on('guildMemberAdd', (member) => {
+	member.send("Welcome!");
+});
+
+
+// UPLOADING THE COMMANDS FOR INTERACTION
 client.commands = new Collection();
-
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.data.name, command);
 }
 
-client.on('ready', () => {
-	console.log(`Logged in as ${client.user.tag}!`);
 
-});
-
-client.on('guildMemberAdd', (member) => {
-	member.send("Welcome!");
-});
-
+//	INTERACTION
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
@@ -44,35 +44,47 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
+
+//	MESSAGEDELETE
 client.on('messageDelete', (message) => {
+	const channel = "972184647201062932"
 	let files = []
 	for (let val of message.attachments) files.push(val[1].proxyURL)
-	const Embed = msgInteraction(message)
-	client.channels.cache.get("972184647201062932").send({ files: files, embeds: [Embed] })
+	const Embed = messagesManager(message)
+	client.channels.cache.get(channel).send({ files: files, embeds: [Embed] })
 
 })
+
+
+//	MESSAGEUPDATE
 client.on('messageUpdate', (message) => {
+	const channel = "974257431897051146"
 	let files = []
 	for (let val of message.attachments) files.push(val[1].proxyURL)
-	const Embed = msgInteraction(message)
-	client.channels.cache.get("974257431897051146").send({ files: files, embeds: [Embed] })
+	const Embed = messagesManager(message)
+	client.channels.cache.get(channel).send({ files: files, embeds: [Embed] })
 })
 
 
+//	VOICESTATEUPDATE
 client.on("voiceStateUpdate", (oldMember, newMember) => {
-
-	timeCount(oldMember, newMember)
+	timeCounter(oldMember, newMember)
 	randomRoom(oldMember, newMember)
 	privateRoom(oldMember, newMember)
 	personlRoom(oldMember, newMember)
-
 })
+
+
+//	MESSAGE
 client.on('message', async (message) => {
-	setUserLvl(message)
+	lvlManager(message)
 })
 
 
-// 
+// LOGGING BOT
+client.on('ready', () => {
+	console.log(`Logged in as ${client.user.tag}!`);
+});
 
 
 client.login(token);
