@@ -22,7 +22,7 @@ for (const file of commandFiles) {
 
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
-	// console.log(client.guilds.cache.size)
+
 });
 
 client.on('guildMemberAdd', (member) => {
@@ -30,7 +30,6 @@ client.on('guildMemberAdd', (member) => {
 });
 
 client.on('interactionCreate', async interaction => {
-
 	if (!interaction.isCommand()) return;
 
 	const command = client.commands.get(interaction.commandName);
@@ -61,7 +60,8 @@ client.on('messageUpdate', (message) => {
 
 
 client.on("voiceStateUpdate", (oldMember, newMember) => {
-	timeCounter(oldMember, newMember)
+
+	timeCount(oldMember, newMember)
 	randomRoom(oldMember, newMember)
 	privateRoom(oldMember, newMember)
 	personlRoom(oldMember, newMember)

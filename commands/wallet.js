@@ -5,7 +5,7 @@ let db = require('quick.db')
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('wallet')
-		.setDescription('Показать мой уровень'),
+		.setDescription('Показать мой текущий баланс'),
 	async execute(interaction) {
 		let uid = interaction.user.id
 		let sid = interaction.guild.id
@@ -15,13 +15,10 @@ module.exports = {
 			money = 0
 		}
 
-
 		const Embed = new MessageEmbed()
-			.setColor('#ffffff')
-			.setTitle(`Текущий балланс — ${interaction.user.username}`)
+			.setTitle(`Текущий баланс — ${interaction.user.username}`)
 			.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: true })}`)
 			.addFields(
-
 				{ name: "койнов:", value: `${money}`, inline: true },
 				{ name: "осколков:", value: `0`, inline: true },
 			)

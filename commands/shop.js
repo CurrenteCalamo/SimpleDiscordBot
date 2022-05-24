@@ -12,6 +12,13 @@ module.exports = {
 		.setDescription('Создать пользовательскую роль!')
 	,
 	async execute(interaction) {
+		let uid = interaction.user.id
+		let sid = interaction.guild.id
+		let money = db.get(`money_${sid}_${uid}`)
+		if (money == null) {
+			db.set(`money_${sid}_${uid}`, 0)
+			money = 0
+		}
 		let page = 0
 		let pages = 4
 		const myItems = db.get('myItems')
@@ -62,7 +69,7 @@ module.exports = {
 		}, 50000);
 
 		collector.on('collect', async i => {
-			// if (i.user.id !== uid) return
+			if (i.user.id !== interaction.user.id) return
 			let buttonse
 
 			let tmps
@@ -79,12 +86,10 @@ module.exports = {
 						.setLabel("Next")
 						.setStyle("PRIMARY")
 						.setCustomId("next")
-						.setDisabled(pages < myItems.length),
 
 				);
 				tmps = helperlol(myItems, pages)
 				embeds = new MessageEmbed()
-					.setColor('#ffffff')
 					.setTitle('Магазин личных ролей')
 					.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
 
@@ -98,7 +103,6 @@ module.exports = {
 					components: [buttonse, buttonss],
 				})
 			} else if (i.customId == 'last') {
-				console.log(pages >= myItems.length)
 				pages -= 4
 				buttonse = new MessageActionRow().addComponents(
 					new MessageButton()
@@ -110,13 +114,11 @@ module.exports = {
 						.setLabel("Next")
 						.setStyle("PRIMARY")
 						.setCustomId("next")
-						.setDisabled(pages >= myItems.length),
 
 				);
 
 				tmps = helperlol(myItems, pages)
 				embeds = new MessageEmbed()
-					.setColor('#ffffff')
 					.setTitle('Магазин личных ролей')
 					.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
 
@@ -129,27 +131,105 @@ module.exports = {
 					components: [buttonse, buttonss],
 				})
 			} else {
-				i.update({
-					embeds: [],
-					components: [buttonse, buttonss],
-				})
-				// await interaction.followUp({ content: `These buttons aren't for you!`, ephemeral: true })
-				// let embedes = new MessageEmbed()
-				// 	.setColor('#ffffff')
-				// 	.setTitle('Купить роль в магазине')
-				// 	.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-				// 	.setDescription(`<@${interaction.user.id}>, Вы уверены, что хотите купить роль <@&${myItems[i.customId].role.id}> за ${myItems[i.customId].match} ? Роли покупаются на 7 дней, после чего Вам придется купить ее заново`)
+				if (money > myItems[i.customId].match) {
+					const role = myItems[i.customId].role.id
+					let amount = myItems[i.customId].match
 
-				// let embededs = new MessageEmbed()
-				// 	.setColor('#ffffff')
-				// 	.setTitle('Купить роль в магазине')
-				// 	.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-				// 	.setDescription(`<@${interaction.user.id}>, у Вас недостаточно :coin: для покупки роли <@&${myItems[i.customId].role.id}> за ${myItems[i.customId].match} ? Роли покупаются на 7 дней, после чего Вам придется купить ее заново`)
+					let embedes = new MessageEmbed()
+						.setTitle('Купить роль в магазине')
+						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+						.setDescription(`<@${interaction.user.id}>, Вы уверены, что хотите купить роль <@&${myItems[i.customId].role.id}> за ${myItems[i.customId].match} ? Роли покупаются на 7 дней, после чего Вам придется купить ее заново`)
+					const buttons = new MessageActionRow().addComponents(
+						new MessageButton()
+							.setLabel('cancel')
+							.setStyle("DANGER")
+							.setCustomId("not"),
+						new MessageButton()
+							.setLabel('create')
+							.setStyle("SUCCESS")
+							.setCustomId("yes")
+					);
+
+					const collector = interaction.channel.createMessageComponentCollector({ time: 20000 });
+
+					setTimeout(() => {
+						interaction.deleteReply();
+					}, 20000);
+
+
+					await interaction.followUp({
+						embeds: [embedes],
+						components: [buttons],
+					})
+
+					collector.on('collect', async i => {
+						if (i.user.id !== interaction.user.id) return
+
+						if (i.customId === 'yes') {
+							i.member.roles.add(role)
+							db.set(`money_${sid}_${uid}`, money - amount)
+							const embed = new MessageEmbed()
+								.setTitle('Продажа роли')
+								.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+								.setDescription(`<@${interaction.user.id}> **Роль** ${role} **куплина!**`)
+							return i.update({ embeds: [embed], components: [] });
+						} else {
+							const embed = new MessageEmbed()
+								.setTitle('Продажа роли')
+								.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+								.setDescription(`<@${interaction.user.id}> **Вы отменили действие с ролью**`)
+							return i.update({ embeds: [embed], components: [] });
+						}
+
+					});
+
+				} else {
+					const embed = new MessageEmbed()
+						.setTitle('Продажа роли')
+						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+						.setDescription(`<@${interaction.user.id}> **Вы отменили действие с ролью**`)
+					return interaction.followUp({ embeds: [embed], components: [] });
+				}
+
+
+
+				// 		
+				// 			collector.on('collect', async i => {
+				// 				if (i.user.id !== interaction.user.id) return
+
+				// 				if (i.customId === 'yes') {
+				// 					i.member.roles.add(role)
+
+				// 					db.set(`money_${sid}_${uid}`, money - amount)
+				// 					const embed = new MessageEmbed()
+				// 						.setTitle('Продажа роли')
+				// 						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+				// 						.setDescription(`<@${interaction.user.id}> **Роль** ${role} **куплина!**`)
+
+				// 					return i.update({ embeds: [embed], components: [] });
+				// 				} else {
+				// 					const embed = new MessageEmbed()
+				// 						.setTitle('Продажа роли')
+				// 						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+				// 						.setDescription(`<@${interaction.user.id}> **Вы отменили действие с ролью**`)
+				// 					return i.update({ embeds: [embed], components: [] });
+				// 				}
+
+				// 			});
+
+				// 		} else {
+				// 			let embededs = new MessageEmbed()
+				// 				.setTitle('Купить роль в магазине')
+				// 				.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+				// 				.setDescription(`<@${interaction.user.id}>, у Вас недостаточно :coin: для покупки роли <@&${myItems[i.customId].role.id}> за ${myItems[i.customId].match} ? Роли покупаются на 7 дней, после чего Вам придется купить ее заново`)
+				// 			i.reply({ embed: [embededs] })
+				// 		}
 			}
+		}
 
 
 
-		});
+		);
 
 
 	},

@@ -3,40 +3,43 @@ let db = require('quick.db')
 const { rooms } = require('./config.json');
 const { Permissions } = require('discord.js');
 function msgInteraction(message) {
-
 	return new MessageEmbed()
-		.setColor('#ffffff')
-		.addField('Отправитель', message.member.toString())
+		.addField('Отправитель', message.member.toString(), true)
 		.addField('Канал', message.channel.toString(), true)
-		.addField('Содержание', message.content ? message.content : 'null', true)
+		.addField('Содержание', message.content ? message.content : `null`)
 		.setTimestamp()
 }
 
 function timeCounter(oM, nM) {
 	if (!oM.channel && nM.channel) {
+
 		let tmpTime = db.get(`voiceTmpTime.${nM.member.id}`)
-		if (!tmpTime) {
+		if (!tmpTime)
 			db.set(`voiceTmpTime.${nM.member.id}`, Date.now())
-		}
+
+
 		let allTime = db.get(`voiceAllTime.${nM.member.id}`)
-		if (!allTime) {
+		if (!allTime)
 			db.set(`voiceAllTime.${nM.member.id}`, 0)
-		}
+
+
 		let dayTime = db.get(`voiceAllTime.${nM.member.id}`)
-		if (!dayTime) {
+		if (!dayTime)
 			db.set(`voiceDayTime.${nM.member.id}`, 0)
-		}
-		//
+
+
 		let todayTime = new Date()
 		var dd = String(todayTime.getDate()).padStart(2, '0');
 		var mm = String(todayTime.getMonth() + 1).padStart(2, '0'); //January is 0!
 		var yyyy = todayTime.getFullYear();
+
 		todayTime = mm + dd + yyyy;
 		let lastTime = db.get(`voiceLastTime`)
 		if (!lastTime) {
 			db.set(`voiceLastTime`, 0)
 			lastTime = 0
 		}
+
 		if (lastTime < todayTime) {
 			db.set(`voiceLastTime`, Number(todayTime))
 			db.set(`voiceDayTime.${nM.member.id}`, 0)
@@ -95,27 +98,27 @@ function privateRoom(oM, nM) {
 function setUserLvl(message) {
 	let uid = message.author.id
 	let sid = message.guild.id
-	let xp = db.get(`xp_${sid}_${uid} `)
-	let lvl = db.get(`lvl_${sid}_${uid} `)
+	let xp = db.get(`xp_${sid}_${uid}`)
+	let lvl = db.get(`lvl_${sid}_${uid}`)
 
 	if (!xp) {
-		db.set(`xp_${sid}_${uid} `, 0)
+		db.set(`xp_${sid}_${uid}`, 0)
 		xp = 0
 	}
 	if (!lvl) {
-		db.set(`lvl_${sid}_${uid} `, 1)
+		db.set(`lvl_${sid}_${uid}`, 1)
 		lvl = 1
 	}
-	db.add(`xp_${sid}_${uid} `, 1)
+	db.add(`xp_${sid}_${uid}`, 1)
 	if (xp >= 90) {
-		db.add(`lvl_${sid}_${uid} `, 1)
-		db.set(`xp_${sid}_${uid} `, 0)
+		db.add(`lvl_${sid}_${uid}`, 1)
+		db.set(`xp_${sid}_${uid}`, 0)
 	}
 	switch (lvl) {
 		case 1: {
 			message.member.roles.add('974343451678244904')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343451678244904> `)
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 5: {
@@ -124,7 +127,7 @@ function setUserLvl(message) {
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343448930959390> `)
 			message.member.send("Теперь вы можете собирать ежедневные награды.");
 
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 25: {
@@ -132,7 +135,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974343445491621889')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343445491621889> `)
 			message.member.send("Теперь вы можете создавать приватные комнаты");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 50: {
@@ -140,7 +143,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974343442656272494')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343442656272494> `)
 			message.member.send("Теперь вы можете делится изображениями.");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 100: {
@@ -148,7 +151,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974343439284052087')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343439284052087> `)
 			message.member.send("Теперь вам начинает вести в ежедневных наградах.");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 250: {
@@ -156,7 +159,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974342727514849290')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342727514849290> `)
 			message.member.send("Тепер ваша комиссия в магазине составит 0%.");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 500: {
@@ -164,7 +167,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974342721630249021')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342721630249021> `)
 			message.member.send("Вам открывается доступ к закрытому каналу.");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 
 			break;
@@ -173,7 +176,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974342141230845973')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342141230845973> `)
 			message.member.send("Вам открывается привилегии модератора.");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		} case 2500: {
@@ -181,13 +184,13 @@ function setUserLvl(message) {
 			message.member.roles.add('974340757198630952')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974340757198630952> `)
 			message.member.send("Мы любим вас! Будущее сервера в ваших руках.");
-			db.add(`lvl_${sid}_${uid} `, 1)
+			db.add(`lvl_${sid}_${uid}`, 1)
 
 			break;
 		}
 	}
 }
-function line(time) {
+function getTimeStr(time) {
 
 
 	let days = Math.floor(time / (1000 * 60 * 60 * 24) % 30)
@@ -222,4 +225,4 @@ function helperlol2(array, page) {
 
 
 }
-module.exports = { msgInteraction, timeCounter, randomRoom, personlRoom, privateRoom, setUserLvl, line, lol, helperlol, helperlol2 }
+module.exports = { msgInteraction, timeCounter, randomRoom, personlRoom, privateRoom, setUserLvl, getTimeStr, lol, helperlol, helperlol2 }

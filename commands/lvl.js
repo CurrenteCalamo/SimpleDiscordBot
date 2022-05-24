@@ -10,6 +10,7 @@ module.exports = {
 
 		let uid = interaction.user.id
 		let sid = interaction.guild.id
+
 		let xp = db.get(`xp_${sid}_${uid}`)
 		let lvl = db.get(`lvl_${sid}_${uid}`)
 		if (!xp) {
@@ -20,15 +21,12 @@ module.exports = {
 			db.set(`lvl_${sid}_${uid}`, 1)
 			lvl = 1
 		}
-
 		const embed = new MessageEmbed()
-			.setColor('#ffffff')
 			.setTitle(`Текущий уровень — ${interaction.user.username}`)
 			.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: true })}`)
 			.addFields(
-
 				{ name: "уровень:", value: `${lvl}`, inline: true },
-				{ name: "опыт:", value: `${Math.floor(xp / 3)}/30`, inline: true },
+				{ name: "опыт:", value: `${xp}/30`, inline: true },
 			)
 		return interaction.reply({
 			"embeds": [embed],
