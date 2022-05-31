@@ -1,5 +1,5 @@
 # SimpleDiscordBot
-Eclipse is a self contained Discord bot with source code easy to collect and written in JavaScript.
+SimpleDiscordBot is a self contained Discord bot with source code easy to collect and written in JavaScript.
 ## Install
 
 ```javascript
