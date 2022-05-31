@@ -1,236 +1,181 @@
-
-
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders')
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
 let db = require('quick.db')
-const { lock } = require('../config.json');
-const { helperlol, helperlol2 } = require('../helper');
+const { getShopButtons, getShopList, } = require('../components')
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('shop')
-		.setDescription('Создать пользовательскую роль!')
-	,
+		.setDescription('Магазин ролей'),
 	async execute(interaction) {
-		let uid = interaction.user.id
-		let sid = interaction.guild.id
-		let money = db.get(`money_${sid}_${uid}`)
-		if (money == null) {
-			db.set(`money_${sid}_${uid}`, 0)
+
+		const uid = interaction.user.id
+		const sid = interaction.guild.id
+
+		let page = 1
+		let pages = 0
+		let money = await db.get(`money_${sid}_${uid}`)
+		if (!money) {
+			await db.set(`money_${sid}_${uid}`, 0)
 			money = 0
 		}
-		let page = 0
-		let pages = 4
-		const myItems = db.get('myItems')
-		if (!myItems) {
-			db.set('myItems', [])
-		}
-		// let uid = interaction.user.id
-		// let sid = interaction.guild.id
-		// let money = db.get(`money_${sid}_${uid}`)
-		// if (money == null) {
-		// 	db.set(`money_${sid}_${uid}`, 0)
-		// 	money = 0
-		// }
-		// let tmp = myItems.length
-		const lol = helperlol(myItems, 0)
-		const lol2 = helperlol2(myItems, 0)
-		const embed = new MessageEmbed()
-			.setColor('#ffffff')
-			.setTitle('Магазин личных ролей')
-			.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
 
-			.addFields(
-				...lol
-			)
+		let myItems = await db.get('myItems')
+		if (!myItems) {
+			await db.set('myItems', [])
+		}
+
+		let tmppage = Math.floor((myItems.length) / 5) + 1
+		const listRole = getShopList(myItems, 0)
+		const byeButtons = getShopButtons(myItems, 0)
+
+
+		const embed = new MessageEmbed()
+			.setTitle(`Магазин личных ролей ${page}/${tmppage}`)
+			.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+			.addFields(...listRole)
+
 		const buttons = new MessageActionRow().addComponents(
 			new MessageButton()
-				.setLabel("last")
+				.setLabel("Last")
 				.setStyle("DANGER")
 				.setCustomId("last")
-				.setDisabled(true),
+				.setDisabled(page == 1 ? true : false),
 			new MessageButton()
 				.setLabel("Next")
 				.setStyle("PRIMARY")
 				.setCustomId("next")
-				.setDisabled(false),
+				.setDisabled(page == tmppage ? true : false)
+		)
 
-		);
-
-
-
-		const collector = interaction.channel.createMessageComponentCollector({ time: 50000 });
+		const collector = interaction.channel.createMessageComponentCollector({ time: 40000 })
 		await interaction.reply({
 			embeds: [embed],
-			components: [buttons, lol2],
+			components: [buttons, byeButtons],
+			ephemeral: true,
 		})
-		setTimeout(() => {
-			interaction.deleteReply();
-		}, 50000);
-
+		let tmp
 		collector.on('collect', async i => {
 			if (i.user.id !== interaction.user.id) return
-			let buttonse
 
-			let tmps
-			let buttonss
-			let embeds
-			if (i.customId == 'next') {
-				buttonse = new MessageActionRow().addComponents(
-					new MessageButton()
-						.setLabel("last")
-						.setStyle("DANGER")
-						.setCustomId("last")
-						.setDisabled(pages == 0),
-					new MessageButton()
-						.setLabel("Next")
-						.setStyle("PRIMARY")
-						.setCustomId("next")
-
-				);
-				tmps = helperlol(myItems, pages)
-				embeds = new MessageEmbed()
-					.setTitle('Магазин личных ролей')
-					.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-
-					.addFields(
-						...tmps
+			switch (i.customId) {
+				case 'next': {
+					page += 1
+					pages += 4
+					const buttons = new MessageActionRow().addComponents(
+						new MessageButton()
+							.setLabel("Last")
+							.setStyle("DANGER")
+							.setCustomId("last")
+							.setDisabled(page == 1 ? true : false),
+						new MessageButton()
+							.setLabel("Next")
+							.setStyle("PRIMARY")
+							.setCustomId("next")
+							.setDisabled(page == tmppage ? true : false)
 					)
-				buttonss = helperlol2(myItems, pages)
-				pages += 4
-				i.update({
-					embeds: [embeds],
-					components: [buttonse, buttonss],
-				})
-			} else if (i.customId == 'last') {
-				pages -= 4
-				buttonse = new MessageActionRow().addComponents(
-					new MessageButton()
-						.setLabel("last")
-						.setStyle("DANGER")
-						.setCustomId("last")
-						.setDisabled(pages == 0),
-					new MessageButton()
-						.setLabel("Next")
-						.setStyle("PRIMARY")
-						.setCustomId("next")
+					const embed = new MessageEmbed()
+						.setTitle(`Магазин личных ролей ${page}/${tmppage}`)
+						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+						.addFields(...getShopList(myItems, pages))
 
-				);
-
-				tmps = helperlol(myItems, pages)
-				embeds = new MessageEmbed()
-					.setTitle('Магазин личных ролей')
-					.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-
-					.addFields(
-						...tmps
+					return await interaction.editReply({
+						embeds: [embed],
+						components: [buttons, getShopButtons(myItems, pages)],
+						ephemeral: true,
+					})
+				}
+				case 'last': {
+					page -= 1
+					pages -= 4
+					const buttons = new MessageActionRow().addComponents(
+						new MessageButton()
+							.setLabel("Last")
+							.setStyle("DANGER")
+							.setCustomId("last")
+							.setDisabled(page == 1 ? true : false),
+						new MessageButton()
+							.setLabel("Next")
+							.setStyle("PRIMARY")
+							.setCustomId("next")
+							.setDisabled(page == tmppage ? true : false)
 					)
-				buttonss = helperlol2(myItems, pages)
-				i.update({
-					embeds: [embeds],
-					components: [buttonse, buttonss],
-				})
-			} else {
-				if (money > myItems[i.customId].match) {
-					const role = myItems[i.customId].role.id
-					let amount = myItems[i.customId].match
+					const embed = new MessageEmbed()
+						.setTitle(`Магазин личных ролей ${page}/${tmppage}`)
+						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+						.addFields(...getShopList(myItems, pages))
 
+					return await interaction.editReply({
+						embeds: [embed],
+						components: [buttons, getShopButtons(myItems, pages)],
+						ephemeral: true,
+					})
+				}
+				case 'yes': {
+					const role = myItems[tmp].role
+					let amount = myItems[tmp].match
+					if (money >= amount) {
+						await db.set('myItems', myItems.filter(i => i !== myItems[tmp]))
+						await i.member.roles.add(role.id)
+						await db.set(`money_${sid}_${uid}`, money - amount)
+
+						const embed = new MessageEmbed()
+							.setTitle('Купить роль в магазине')
+							.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+							.setDescription(`<@${interaction.user.id}>, Вы **купили** роль <@&${role.id}>`)
+						return await interaction.editReply({
+							embeds: [embed],
+							components: [],
+							ephemeral: true
+						})
+					} else {
+						const embed = new MessageEmbed()
+							.setTitle('Купить роль в магазине')
+							.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+							.setDescription(`<@${interaction.user.id}>, у Вас недостаточно  <:durkas:975796782367907921> для покупки роли <@&${role.role.id}>. Необходимо ${amount - money}  <:durkas:975796782367907921>`)
+						return await interaction.editReply({
+							embeds: [embed],
+							components: [],
+							ephemeral: true
+						})
+					}
+				}
+				case 'not': {
+					const role = myItems[tmp].role
+					const embed = new MessageEmbed()
+						.setTitle('Купить роль в магазине')
+						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
+						.setDescription(`<@${interaction.user.id}>, Вы **отменили** покупку роли <@&${role.id}>`)
+					return await interaction.editReply({
+						embeds: [embed],
+						components: [],
+						ephemeral: true
+					})
+				}
+				default: {
+					tmp = Number(i.customId)
+					const role = myItems[tmp]
 					let embedes = new MessageEmbed()
 						.setTitle('Купить роль в магазине')
 						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-						.setDescription(`<@${interaction.user.id}>, Вы уверены, что хотите купить роль <@&${myItems[i.customId].role.id}> за ${myItems[i.customId].match} ? Роли покупаются на 7 дней, после чего Вам придется купить ее заново`)
-					const buttons = new MessageActionRow().addComponents(
+						.setDescription(`<@${interaction.user.id}>, Вы уверены, что хотите купить роль <@&${role.role.id}> за ${role.match}  <:durkas:975796782367907921>?`)
+					const buttonse = new MessageActionRow().addComponents(
 						new MessageButton()
 							.setLabel('cancel')
 							.setStyle("DANGER")
 							.setCustomId("not"),
 						new MessageButton()
-							.setLabel('create')
+							.setLabel('yes')
 							.setStyle("SUCCESS")
 							.setCustomId("yes")
-					);
-
-					const collector = interaction.channel.createMessageComponentCollector({ time: 20000 });
-
-					setTimeout(() => {
-						interaction.deleteReply();
-					}, 20000);
-
-
-					await interaction.followUp({
+					)
+					return await interaction.editReply({
 						embeds: [embedes],
-						components: [buttons],
+						components: [buttonse],
+						ephemeral: true,
 					})
-
-					collector.on('collect', async i => {
-						if (i.user.id !== interaction.user.id) return
-
-						if (i.customId === 'yes') {
-							i.member.roles.add(role)
-							db.set(`money_${sid}_${uid}`, money - amount)
-							const embed = new MessageEmbed()
-								.setTitle('Продажа роли')
-								.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-								.setDescription(`<@${interaction.user.id}> **Роль** ${role} **куплина!**`)
-							return i.update({ embeds: [embed], components: [] });
-						} else {
-							const embed = new MessageEmbed()
-								.setTitle('Продажа роли')
-								.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-								.setDescription(`<@${interaction.user.id}> **Вы отменили действие с ролью**`)
-							return i.update({ embeds: [embed], components: [] });
-						}
-
-					});
-
-				} else {
-					const embed = new MessageEmbed()
-						.setTitle('Продажа роли')
-						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-						.setDescription(`<@${interaction.user.id}> **Вы отменили действие с ролью**`)
-					return interaction.followUp({ embeds: [embed], components: [] });
 				}
-
-
-
-				// 		
-				// 			collector.on('collect', async i => {
-				// 				if (i.user.id !== interaction.user.id) return
-
-				// 				if (i.customId === 'yes') {
-				// 					i.member.roles.add(role)
-
-				// 					db.set(`money_${sid}_${uid}`, money - amount)
-				// 					const embed = new MessageEmbed()
-				// 						.setTitle('Продажа роли')
-				// 						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-				// 						.setDescription(`<@${interaction.user.id}> **Роль** ${role} **куплина!**`)
-
-				// 					return i.update({ embeds: [embed], components: [] });
-				// 				} else {
-				// 					const embed = new MessageEmbed()
-				// 						.setTitle('Продажа роли')
-				// 						.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-				// 						.setDescription(`<@${interaction.user.id}> **Вы отменили действие с ролью**`)
-				// 					return i.update({ embeds: [embed], components: [] });
-				// 				}
-
-				// 			});
-
-				// 		} else {
-				// 			let embededs = new MessageEmbed()
-				// 				.setTitle('Купить роль в магазине')
-				// 				.setThumbnail(`${interaction.user.displayAvatarURL({ dynamic: false })}`)
-				// 				.setDescription(`<@${interaction.user.id}>, у Вас недостаточно :coin: для покупки роли <@&${myItems[i.customId].role.id}> за ${myItems[i.customId].match} ? Роли покупаются на 7 дней, после чего Вам придется купить ее заново`)
-				// 			i.reply({ embed: [embededs] })
-				// 		}
 			}
-		}
-
-
-
-		);
-
-
-	},
+		})
+	}
 }
