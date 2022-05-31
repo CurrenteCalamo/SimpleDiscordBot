@@ -14,7 +14,7 @@ The config used to set some private infos. Like discord `token`. Site tokens.
 
 
 ## Running the app
-```bash
+```javascript
 $ npm run start
 ```
 ## Stay in touch
