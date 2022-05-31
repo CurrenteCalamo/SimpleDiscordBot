@@ -1,5 +1,6 @@
 # SimpleDiscordBot
 SimpleDiscordBot is a self contained Discord bot with source code easy to collect and written in JavaScript.
+- Example - [Currente Calamo](https://myserver.gg/ru/969992579468914751)
 ## Install
 
 ```javascript
