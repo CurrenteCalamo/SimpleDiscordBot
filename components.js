@@ -1,5 +1,5 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js')
-let db = require('quick.db')
+let db = require('quick. await db')
 const { channels } = require('./config.json')
 const { Permissions } = require('discord.js')
 
@@ -14,19 +14,19 @@ function getMessages(message) {
 function setTimeCounter(oM, nM) {
 	if (!oM.channel && nM.channel) {
 
-		let tmpTime = db.get(`voiceTmpTime.${nM.member.id}`)
+		let tmpTime = await db.get(`voiceTmpTime.${nM.member.id}`)
 		if (!tmpTime)
-			db.set(`voiceTmpTime.${nM.member.id}`, Date.now())
+			await db.set(`voiceTmpTime.${nM.member.id}`, Date.now())
 
 
-		let allTime = db.get(`voiceAllTime.${nM.member.id}`)
+		let allTime = await db.get(`voiceAllTime.${nM.member.id}`)
 		if (!allTime)
-			db.set(`voiceAllTime.${nM.member.id}`, 0)
+			await db.set(`voiceAllTime.${nM.member.id}`, 0)
 
 
-		let dayTime = db.get(`voiceAllTime.${nM.member.id}`)
+		let dayTime = await db.get(`voiceAllTime.${nM.member.id}`)
 		if (!dayTime)
-			db.set(`voiceDayTime.${nM.member.id}`, 0)
+			await db.set(`voiceDayTime.${nM.member.id}`, 0)
 
 
 		let todayTime = new Date()
@@ -35,27 +35,27 @@ function setTimeCounter(oM, nM) {
 		var yyyy = todayTime.getFullYear()
 
 		todayTime = mm + dd + yyyy
-		let lastTime = db.get(`voiceLastTime`)
+		let lastTime = await await db.get(`voiceLastTime`)
 		if (!lastTime) {
-			db.set(`voiceLastTime`, 0)
+			await await db.set(`voiceLastTime`, 0)
 			lastTime = 0
 		}
 
 		if (lastTime < todayTime) {
-			db.set(`voiceLastTime`, Number(todayTime))
-			db.set(`voiceDayTime.${nM.member.id}`, 0)
+			await db.set(`voiceLastTime`, Number(todayTime))
+			await db.set(`voiceDayTime.${nM.member.id}`, 0)
 		}
 
 	} else if (!nM.channel) {
 		var endTime = Date.now()
-		let tmpTime = db.get(`voiceTmpTime.${nM.member.id}`)
+		let tmpTime = await await db.get(`voiceTmpTime.${nM.member.id}`)
 		if (!tmpTime) return
 
 		let time = endTime - tmpTime
 
-		db.add(`voiceAllTime.${oM.member.id}`, time)
-		db.add(`voiceDayTime.${oM.member.id}`, time)
-		db.set(`voiceTmpTime.${oM.member.id}`, null)
+		await db.add(`voiceAllTime.${oM.member.id}`, time)
+		await db.add(`voiceDayTime.${oM.member.id}`, time)
+		await await db.set(`voiceTmpTime.${oM.member.id}`, null)
 	}
 
 
@@ -99,29 +99,29 @@ function getPrivateRoom(oM, nM) {
 }
 
 function setUserLvl(message) {
-	let uid = message.author.id
-	let sid = message.guild.id
-	let xp = db.get(`xp_${sid}_${uid}`)
-	let lvl = db.get(`lvl_${sid}_${uid}`)
+	const uid = message.author.id
+	const sid = message.guild.id
+	let xp = await db.get(`xp_${sid}_${uid}`)
+	let lvl = await db.get(`lvl_${sid}_${uid}`)
 
 	if (!xp) {
-		db.set(`xp_${sid}_${uid}`, 0)
+		await db.set(`xp_${sid}_${uid}`, 0)
 		xp = 0
 	}
 	if (!lvl) {
-		db.set(`lvl_${sid}_${uid}`, 1)
+		await db.set(`lvl_${sid}_${uid}`, 1)
 		lvl = 1
 	}
-	db.add(`xp_${sid}_${uid}`, 1)
+	await db.add(`xp_${sid}_${uid}`, 1)
 	if (xp >= 90) {
-		db.add(`lvl_${sid}_${uid}`, 1)
-		db.set(`xp_${sid}_${uid}`, 0)
+		await db.add(`lvl_${sid}_${uid}`, 1)
+		await db.set(`xp_${sid}_${uid}`, 0)
 	}
 	switch (lvl) {
 		case 1: {
 			message.member.roles.add('974343451678244904')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343451678244904> `)
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 5: {
@@ -130,7 +130,7 @@ function setUserLvl(message) {
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343448930959390> `)
 			message.member.send("Теперь вы можете собирать ежедневные награды.")
 
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 25: {
@@ -138,7 +138,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974343445491621889')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343445491621889> `)
 			message.member.send("Теперь вы можете создавать приватные комнаты")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 50: {
@@ -146,7 +146,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974343442656272494')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343442656272494> `)
 			message.member.send("Теперь вы можете делится изображениями.")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 100: {
@@ -154,7 +154,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974343439284052087')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974343439284052087> `)
 			message.member.send("Теперь вам начинает вести в ежедневных наградах.")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 250: {
@@ -162,7 +162,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974342727514849290')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342727514849290> `)
 			message.member.send("Тепер ваша комиссия в магазине составит 0%.")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 500: {
@@ -170,7 +170,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974342721630249021')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342721630249021> `)
 			message.member.send("Вам открывается доступ к закрытому каналу.")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 
 			break
@@ -179,7 +179,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974342141230845973')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974342141230845973> `)
 			message.member.send("Вам открывается привилегии модератора.")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		} case 2500: {
@@ -187,7 +187,7 @@ function setUserLvl(message) {
 			message.member.roles.add('974340757198630952')
 			message.channel.send(`${message.author}, ты поднял(-а) уровень! Теперь ты <@&974340757198630952> `)
 			message.member.send("Мы любим вас! Будущее сервера в ваших руках.")
-			db.add(`lvl_${sid}_${uid}`, 1)
+			await db.add(`lvl_${sid}_${uid}`, 1)
 
 			break
 		}
